@@ -1,14 +1,15 @@
-const express = require('express');
-const { Client } = require('whatsapp-web.js');
-const qrcode = require('qrcode');
-const pg = require('pg');
-require('dotenv').config();
+import express from 'express';
+import { Client } from 'whatsapp-web.js';
+import qrcode from 'qrcode';
+import pg from 'pg';
+import 'dotenv/config';
 
+const { Pool } = pg;
 const app = express();
+
 app.use(express.json());
 
 // Database connection
-const { Pool } = pg;
 const pool = new Pool({
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
@@ -31,7 +32,7 @@ client.on('ready', () => {
 
 client.on('message', async (message) => {
   console.log(`New message from ${message.from}: ${message.body}`);
-  
+
   try {
     await pool.query(
       'INSERT INTO messages (from_number, message_body, timestamp) VALUES ($1, $2, $3)',
@@ -51,7 +52,7 @@ app.get('/api/health', (req, res) => {
 
 app.post('/api/send-message', async (req, res) => {
   const { phone, message } = req.body;
-  
+
   try {
     await client.sendMessage(`${phone}@c.us`, message);
     res.json({ success: true, message: 'Message sent' });
